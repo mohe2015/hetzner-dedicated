@@ -10,6 +10,29 @@
       ./hardware-configuration.nix
     ];
 
+services.nextcloud = {
+  enable = true;
+  hostName = "nextcloud.selfmade4u.de";
+  extraApps = with config.services.nextcloud.package.packages.apps; {
+    inherit news contacts calendar tasks;
+  };
+  extraAppsEnable = true;
+  https = true;
+  maxUploadSize = "5G";
+  webfinger = true;
+  database = {
+    createLocally = true;
+  };
+  config = {
+    dbtype = "pgsql";
+    adminpassFile = "/etc/nextcloud-admin-pass";    
+  };
+  enableImagemagick = true;
+  caching.apcu = true;
+  
+};
+
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -30,7 +53,7 @@
     address = [
         # configure addresses including subnet mask
         "88.99.224.186/32"
-        "2a01:4f8:1c1b:5828::/64"
+        "2a01:4f8:1c1b:5828::1/64"
     ];
     routes = [
       # create default routes for both IPv6 and IPv4
@@ -127,7 +150,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.05"; # Did you read the comment?
+  system.stateVersion = "23.11"; # Did you read the comment?
 
 }
 
