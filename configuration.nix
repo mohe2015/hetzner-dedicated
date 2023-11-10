@@ -10,7 +10,12 @@
       ./hardware-configuration.nix
     ];
 
-security.acme.acceptTerms = true;
+
+security.acme = {
+  acceptTerms = true;
+  defaults.email = "Moritz.Hedtke@t-online.de";
+};
+
 
 services.postgresql = {
   package = pkgs.postgresql_14;
@@ -145,6 +150,7 @@ services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
   services.openssh.enable = true;
 
   # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
