@@ -46,8 +46,14 @@ services.nextcloud = {
   enable = true;
   hostName = "nextcloud.selfmade4u.de";
   package = pkgs.nextcloud27;
-  extraApps = with config.services.nextcloud.package.packages.apps; {
+  extraApps = (with config.services.nextcloud.package.packages.apps; {
     inherit news contacts calendar tasks;
+  }) // {
+    richdocuments = pkgs.fetchNextcloudApp rec {
+      license = "agpl3Plus";
+      sha256 = "sha256-0kXZEgLBtCa5/EYe/Keni2SWizHjvokFTAv0t7RoOlY=";
+      url = "https://github.com/nextcloud-releases/richdocuments/releases/download/v8.2.2/richdocuments-v8.2.2.tar.gz";
+    };
   };
   extraAppsEnable = true;
   https = true;
