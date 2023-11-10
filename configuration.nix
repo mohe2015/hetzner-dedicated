@@ -10,9 +10,16 @@
       ./hardware-configuration.nix
     ];
 
+security.acme.acceptTerms = true;
+
+services.postgresql = {
+  package = pkgs.postgresql_14;
+};
+
 services.nextcloud = {
   enable = true;
   hostName = "nextcloud.selfmade4u.de";
+  package = pkgs.nextcloud27;
   extraApps = with config.services.nextcloud.package.packages.apps; {
     inherit news contacts calendar tasks;
   };
@@ -28,8 +35,12 @@ services.nextcloud = {
     adminpassFile = "/etc/nextcloud-admin-pass";    
   };
   enableImagemagick = true;
-  caching.apcu = true;
-  
+  caching.apcu = true;  
+};
+
+services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
+  forceSSL = true;
+  enableACME = true;
 };
 
 
