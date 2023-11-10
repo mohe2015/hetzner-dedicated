@@ -66,10 +66,75 @@ defaultPhoneRegion = "DE";
   configureRedis = true;
 };
 
-services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
-  forceSSL = true;
-  enableACME = true;
-};
+services.nginx = {
+      enable = true;
+      virtualHosts = {
+        ${config.services.nextcloud.hostName} = {
+          default = true;
+          forceSSL = true;
+          enableACME = true;
+        };
+        "cloud.selfmade4u.de" = {
+          forceSSL = true;
+          enableACME = true;
+          locations = {
+            # https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html#reverse-proxy-with-nginx-webserver
+            # static files
+            "^~ /browser" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Host $host;
+              '';
+            };
+            # WOPI discovery URL
+            "^~ /hosting/discovery" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Host $host;
+              '';
+            };
+
+            # Capabilities
+            "^~ /hosting/capabilities" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Host $host;
+              '';
+            };
+
+            # download, presentation, image upload and websocket
+            "~ ^/cool/(.*)/ws$" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_set_header Host $host;
+                proxy_read_timeout 36000s;
+              '';
+            };
+
+            # download, presentation and image upload
+            "~ ^/(c|l)ool" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Host $http_host;
+              '';
+            };
+
+            # Admin Console websocket
+            "^~ /lool/adminws" = {
+              proxyPass = "http://localhost:9980";
+              extraConfig = ''
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_set_header Host $host;
+                proxy_read_timeout 36000s;
+              '';
+            };
+          };
+        };
+      };
+    };
 
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
