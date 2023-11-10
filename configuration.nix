@@ -70,11 +70,10 @@ services.nginx = {
       enable = true;
       virtualHosts = {
         ${config.services.nextcloud.hostName} = {
-          default = true;
           forceSSL = true;
           enableACME = true;
         };
-        "cloud.selfmade4u.de" = {
+        "office.selfmade4u.de" = {
           forceSSL = true;
           enableACME = true;
           locations = {
@@ -117,7 +116,7 @@ services.nginx = {
             "~ ^/(c|l)ool" = {
               proxyPass = "http://localhost:9980";
               extraConfig = ''
-                proxy_set_header Host $http_host;
+                proxy_set_header Host $host;
               '';
             };
 
