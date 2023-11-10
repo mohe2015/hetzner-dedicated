@@ -24,7 +24,7 @@ services.postgresql = {
 virtualisation.oci-containers = {
       # Since 22.05, the default driver is podman but it doesn't work
       # with podman. It would however be nice to switch to podman.
-      #backend = "docker";
+      backend = "docker";
       containers.collabora = {
         image = "collabora/code";
         imageFile = pkgs.dockerTools.pullImage {
@@ -86,6 +86,7 @@ services.nginx = {
             # https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html#reverse-proxy-with-nginx-webserver
             # static files
             "^~ /browser" = {
+              priority = 0;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Host $host;
@@ -93,6 +94,7 @@ services.nginx = {
             };
             # WOPI discovery URL
             "^~ /hosting/discovery" = {
+              priority = 100;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Host $host;
@@ -101,6 +103,7 @@ services.nginx = {
 
             # Capabilities
             "^~ /hosting/capabilities" = {
+              priority = 200;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Host $host;
@@ -109,6 +112,7 @@ services.nginx = {
 
             # download, presentation, image upload and websocket
             "~ ^/cool/(.*)/ws$" = {
+              priority = 300;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Upgrade $http_upgrade;
@@ -120,6 +124,7 @@ services.nginx = {
 
             # download, presentation and image upload
             "~ ^/(c|l)ool" = {
+              priority = 400;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Host $host;
@@ -127,7 +132,8 @@ services.nginx = {
             };
 
             # Admin Console websocket
-            "^~ /lool/adminws" = {
+            "^~ /cool/adminws" = {
+              priority = 500;
               proxyPass = "http://localhost:9980";
               extraConfig = ''
                 proxy_set_header Upgrade $http_upgrade;
