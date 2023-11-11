@@ -6,146 +6,147 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
 
-security.acme = {
-  acceptTerms = true;
-  defaults.email = "Moritz.Hedtke@t-online.de";
-};
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "Moritz.Hedtke@t-online.de";
+  };
 
 
-services.postgresql = {
-  package = pkgs.postgresql_14;
-};
+  services.postgresql = {
+    package = pkgs.postgresql_14;
+  };
 
-virtualisation.oci-containers = {
-      # Since 22.05, the default driver is podman but it doesn't work
-      # with podman. It would however be nice to switch to podman.
-      backend = "docker";
-      containers.collabora = {
-        image = "collabora/code";
-        imageFile = pkgs.dockerTools.pullImage {
-          imageName = "collabora/code";
-          imageDigest = "sha256:32c05e2d10450875eb153be11bfb7683fa0db95746e1f59d8c2fc3d988b45445";
-          sha256 = "sha256-laQJldVH8ri54lFecJ26tGdlOGtnb+w7Bb+GJ/spzr8=";
-        };
-        ports = ["9980:9980"];
-        environment = {
-          domain = "nextcloud.selfmade4u.de";
-          extra_params = "--o:ssl.enable=false --o:ssl.termination=true";
-        };
-        extraOptions = ["--cap-add" "MKNOD"];
+  virtualisation.oci-containers = {
+    # Since 22.05, the default driver is podman but it doesn't work
+    # with podman. It would however be nice to switch to podman.
+    backend = "docker";
+    containers.collabora = {
+      image = "collabora/code";
+      imageFile = pkgs.dockerTools.pullImage {
+        imageName = "collabora/code";
+        imageDigest = "sha256:32c05e2d10450875eb153be11bfb7683fa0db95746e1f59d8c2fc3d988b45445";
+        sha256 = "sha256-laQJldVH8ri54lFecJ26tGdlOGtnb+w7Bb+GJ/spzr8=";
+      };
+      ports = [ "9980:9980" ];
+      environment = {
+        domain = "nextcloud.selfmade4u.de";
+        extra_params = "--o:ssl.enable=false --o:ssl.termination=true";
+      };
+      extraOptions = [ "--cap-add" "MKNOD" ];
+    };
+  };
+
+
+  services.nextcloud = {
+    enable = true;
+    hostName = "nextcloud.selfmade4u.de";
+    package = pkgs.nextcloud27;
+    extraApps = (with config.services.nextcloud.package.packages.apps; {
+      inherit news contacts calendar tasks;
+    }) // {
+      richdocuments = pkgs.fetchNextcloudApp rec {
+        license = "agpl3Plus";
+        sha256 = "sha256-0kXZEgLBtCa5/EYe/Keni2SWizHjvokFTAv0t7RoOlY=";
+        url = "https://github.com/nextcloud-releases/richdocuments/releases/download/v8.2.2/richdocuments-v8.2.2.tar.gz";
       };
     };
-
-
-services.nextcloud = {
-  enable = true;
-  hostName = "nextcloud.selfmade4u.de";
-  package = pkgs.nextcloud27;
-  extraApps = (with config.services.nextcloud.package.packages.apps; {
-    inherit news contacts calendar tasks;
-  }) // {
-    richdocuments = pkgs.fetchNextcloudApp rec {
-      license = "agpl3Plus";
-      sha256 = "sha256-0kXZEgLBtCa5/EYe/Keni2SWizHjvokFTAv0t7RoOlY=";
-      url = "https://github.com/nextcloud-releases/richdocuments/releases/download/v8.2.2/richdocuments-v8.2.2.tar.gz";
+    extraAppsEnable = true;
+    https = true;
+    maxUploadSize = "5G";
+    webfinger = true;
+    database = {
+      createLocally = true;
     };
+    config = {
+      dbtype = "pgsql";
+      adminpassFile = "/etc/nextcloud-admin-pass";
+      defaultPhoneRegion = "DE";
+    };
+    enableImagemagick = true;
+    caching.apcu = true;
+    configureRedis = true;
   };
-  extraAppsEnable = true;
-  https = true;
-  maxUploadSize = "5G";
-  webfinger = true;
-  database = {
-    createLocally = true;
-  };
-  config = {
-    dbtype = "pgsql";
-    adminpassFile = "/etc/nextcloud-admin-pass";    
-defaultPhoneRegion = "DE";
-  };
-  enableImagemagick = true;
-  caching.apcu = true;  
-  configureRedis = true;
-};
 
-services.nginx = {
-      enable = true;
-      virtualHosts = {
-        ${config.services.nextcloud.hostName} = {
-          forceSSL = true;
-          enableACME = true;
-        };
-        "office.selfmade4u.de" = {
-          forceSSL = true;
-          enableACME = true;
-          locations = {
-            # https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html#reverse-proxy-with-nginx-webserver
-            # static files
-            "^~ /browser" = {
-              priority = 0;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Host $host;
-              '';
-            };
-            # WOPI discovery URL
-            "^~ /hosting/discovery" = {
-              priority = 100;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Host $host;
-              '';
-            };
+  services.nginx = {
+    enable = true;
+    virtualHosts = {
+      ${config.services.nextcloud.hostName} = {
+        forceSSL = true;
+        enableACME = true;
+      };
+      "office.selfmade4u.de" = {
+        forceSSL = true;
+        enableACME = true;
+        locations = {
+          # https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html#reverse-proxy-with-nginx-webserver
+          # static files
+          "^~ /browser" = {
+            priority = 0;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
+          # WOPI discovery URL
+          "^~ /hosting/discovery" = {
+            priority = 100;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
 
-            # Capabilities
-            "^~ /hosting/capabilities" = {
-              priority = 200;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Host $host;
-              '';
-            };
+          # Capabilities
+          "^~ /hosting/capabilities" = {
+            priority = 200;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
 
-            # download, presentation, image upload and websocket
-            "~ ^/cool/(.*)/ws$" = {
-              priority = 300;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "Upgrade";
-                proxy_set_header Host $host;
-                proxy_read_timeout 36000s;
-              '';
-            };
+          # download, presentation, image upload and websocket
+          "~ ^/cool/(.*)/ws$" = {
+            priority = 300;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+              proxy_set_header Host $host;
+              proxy_read_timeout 36000s;
+            '';
+          };
 
-            # download, presentation and image upload
-            "~ ^/(c|l)ool" = {
-              priority = 400;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Host $host;
-              '';
-            };
+          # download, presentation and image upload
+          "~ ^/(c|l)ool" = {
+            priority = 400;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Host $host;
+            '';
+          };
 
-            # Admin Console websocket
-            "^~ /cool/adminws" = {
-              priority = 500;
-              proxyPass = "http://localhost:9980";
-              extraConfig = ''
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "Upgrade";
-                proxy_set_header Host $host;
-                proxy_read_timeout 36000s;
-              '';
-            };
+          # Admin Console websocket
+          "^~ /cool/adminws" = {
+            priority = 500;
+            proxyPass = "http://localhost:9980";
+            extraConfig = ''
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+              proxy_set_header Host $host;
+              proxy_read_timeout 36000s;
+            '';
           };
         };
       };
     };
+  };
 
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -166,17 +167,19 @@ services.nginx = {
     # match the interface by name
     matchConfig.Name = "enp1s0";
     address = [
-        # configure addresses including subnet mask
-        "88.99.224.186/32"
-        "2a01:4f8:1c1b:5828::1/64"
+      # configure addresses including subnet mask
+      "88.99.224.186/32"
+      "2a01:4f8:1c1b:5828::1/64"
     ];
     routes = [
       # create default routes for both IPv6 and IPv4
       { routeConfig.Gateway = "fe80::1"; }
-      { routeConfig = {
-        Gateway = "172.31.1.1";
-        GatewayOnLink = true;
-      }; }
+      {
+        routeConfig = {
+          Gateway = "172.31.1.1";
+          GatewayOnLink = true;
+        };
+      }
     ];
     # make the routes on this interface a dependency for network-online.target
     linkConfig.RequiredForOnline = "routable";
@@ -192,16 +195,16 @@ services.nginx = {
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
-  #   font = "Lat2-Terminus16";
+    #   font = "Lat2-Terminus16";
     keyMap = "de-latin1";
-#    useXkbConfig = true; # use xkbOptions in tty.
+    #    useXkbConfig = true; # use xkbOptions in tty.
   };
 
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
 
 
-  
+
 
   # Configure keymap in X11
   # services.xserver.layout = "us";
@@ -221,18 +224,18 @@ services.nginx = {
   users.users.moritz = {
     isNormalUser = true;
     extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  #  packages = with pkgs; [
-  #    firefox
-  #     tree
-  #   ];
+    #  packages = with pkgs; [
+    #    firefox
+    #     tree
+    #   ];
   };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     git
-  #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #   wget
+    #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #   wget
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
