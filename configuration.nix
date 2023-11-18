@@ -17,9 +17,15 @@
     defaults.email = "Moritz.Hedtke@t-online.de";
   };
 
-
   services.postgresql = {
     package = pkgs.postgresql_14;
+  };
+
+  services.seafile = {
+    enable = true;
+    adminEmail = "Moritz.Hedtke@t-online.de";
+    initialAdminPassword = "insecureseafilepassword";
+    ccnetSettings.General.SERVICE_URL = "https://seafile.selfmade4u.de";
   };
 
   virtualisation.oci-containers = {
@@ -76,6 +82,24 @@
   services.nginx = {
     enable = true;
     virtualHosts = {
+      "seafile.selfmade4u.de" = {
+        forceSSL = true;
+        enableACME = true;
+
+        locations."/".proxyPass = "http://unix:/run/seahub/gunicorn.sock";
+        locations."/seafhttp" = {
+          proxyPass = "http://127.0.0.1:8082";
+          extraConfig = ''
+            rewrite ^/seafhttp(.*)$ $1 break;
+            client_max_body_size 0;
+            proxy_connect_timeout  36000s;
+            proxy_read_timeout  36000s;
+            proxy_send_timeout  36000s;
+            send_timeout  36000s;
+            proxy_http_version 1.1;
+          '';
+        };
+      };
       ${config.services.nextcloud.hostName} = {
         forceSSL = true;
         enableACME = true;
@@ -234,6 +258,9 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     git
+    htop
+    gh
+    nixpkgs-fmt
     #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #   wget
   ];
