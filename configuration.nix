@@ -63,7 +63,7 @@
     package = pkgs.nextcloud27;
     extraApps = (with config.services.nextcloud.package.packages.apps; {
       # https://github.com/NixOS/nixpkgs/blob/master/pkgs/servers/nextcloud/packages/27.json
-      inherit calendar contacts deck files_texteditor forms groupfolders impersonate mail maps news notes onlyoffice polls spreed tasks;
+      inherit calendar contacts deck files_texteditor forms groupfolders impersonate mail maps news notes polls spreed tasks;
     }) // {
       richdocuments = pkgs.fetchNextcloudApp rec {
         license = "agpl3Plus";
