@@ -21,12 +21,21 @@
     package = pkgs.postgresql_14;
   };
 
-  services.seafile = {
-    enable = true;
-    adminEmail = "Moritz.Hedtke@t-online.de";
-    initialAdminPassword = "insecureseafilepassword";
-    ccnetSettings.General.SERVICE_URL = "https://seafile.selfmade4u.de";
-  };
+  #services.seafile = {
+  #  enable = true;
+  #  adminEmail = "Moritz.Hedtke@t-online.de";
+  #  initialAdminPassword = "insecureseafilepassword";
+  #  ccnetSettings.General.SERVICE_URL = "https://seafile.selfmade4u.de";
+  #  seahubExtraConf = ''
+  #  OFFICE_SERVER_TYPE = 'CollaboraOffice'
+  #  ENABLE_OFFICE_WEB_APP = True
+  #  OFFICE_WEB_APP_BASE_URL = 'https://office.selfmade4u.de/hosting/discovery'
+  #  WOPI_ACCESS_TOKEN_EXPIRATION = 30 * 60   # seconds
+  #  OFFICE_WEB_APP_FILE_EXTENSION = ('odp', 'ods', 'odt', 'xls', 'xlsb', 'xlsm', 'xlsx','ppsx', 'ppt', 'pptm', 'pptx', 'doc', 'docm', 'docx')
+  #  ENABLE_OFFICE_WEB_APP_EDIT = True
+  #  OFFICE_WEB_APP_EDIT_FILE_EXTENSION = ('odp', 'ods', 'odt', 'xls', 'xlsb', 'xlsm', 'xlsx','ppsx', 'ppt', 'pptm', 'pptx', 'doc', 'docm', 'docx')
+  #  '';
+  #};
 
   virtualisation.oci-containers = {
     # Since 22.05, the default driver is podman but it doesn't work
@@ -41,10 +50,10 @@
       };
       ports = [ "9980:9980" ];
       environment = {
-        domain = "nextcloud.selfmade4u.de";
+        domain = "nextcloud.selfmade4u.de|seafile.selfmade4u.de";
         extra_params = "--o:ssl.enable=false --o:ssl.termination=true";
       };
-      extraOptions = [ "--cap-add" "MKNOD" ];
+      extraOptions = [ "--cap-add" "SYS_ADMIN" ];
     };
   };
 
