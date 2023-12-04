@@ -17,6 +17,12 @@
     defaults.email = "Moritz.Hedtke@t-online.de";
   };
 
+  services.mattermost = {
+    enable = true;
+    package = pkgs.mattermost;
+    siteUrl = "https://mattermost.selfmade4u.de";
+  };
+
   services.postgresql = {
     package = pkgs.postgresql_14;
   };
@@ -108,6 +114,22 @@
             proxy_http_version 1.1;
           '';
         };
+      };
+      "mattermost.selfmade4u.de" = {
+        forceSSL = true;
+        enableACME = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8065";
+        };
+        locations."/api/v4/websocket" = {
+            priority = 500;
+            proxyPass = "http://127.0.0.1:8065";
+            extraConfig = ''
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+              proxy_set_header Host $host;
+            '';
+          };
       };
       ${config.services.nextcloud.hostName} = {
         forceSSL = true;
@@ -288,9 +310,8 @@
   services.openssh.enable = true;
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
+  networking.firewall.allowedTCPPorts = [ 80 443 8443 8045 ];
+  networking.firewall.allowedUDPPorts = [ 8443 3478 ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
