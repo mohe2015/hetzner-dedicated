@@ -17,8 +17,14 @@
     defaults.email = "Moritz.Hedtke@t-online.de";
   };
 
+  services.jitsi-meet = {
+    enable = false;
+    hostName = "jitsi.selfmade4u.de";
+  };
+  services.jitsi-videobridge.openFirewall = false;
+
   services.mattermost = {
-    enable = true;
+    enable = false;
     package = pkgs.mattermost;
     siteUrl = "https://mattermost.selfmade4u.de";
   };
@@ -97,7 +103,7 @@
   services.nginx = {
     enable = true;
     virtualHosts = {
-      "seafile.selfmade4u.de" = {
+/*      "seafile.selfmade4u.de" = {
         forceSSL = true;
         enableACME = true;
 
@@ -130,7 +136,7 @@
               proxy_set_header Host $host;
             '';
           };
-      };
+      };*/
       ${config.services.nextcloud.hostName} = {
         forceSSL = true;
         enableACME = true;
