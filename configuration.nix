@@ -57,8 +57,8 @@
       image = "collabora/code";
       imageFile = pkgs.dockerTools.pullImage {
         imageName = "collabora/code";
-        imageDigest = "sha256:32c05e2d10450875eb153be11bfb7683fa0db95746e1f59d8c2fc3d988b45445";
-        sha256 = "sha256-laQJldVH8ri54lFecJ26tGdlOGtnb+w7Bb+GJ/spzr8=";
+        imageDigest = "sha256:451616b720add064c176bf6bf6ae63c4fe5fb8a757d31e699190818fc1a01113";
+        sha256 = "sha256-sIGLGsHMYqkboMlRnSN6eiy+iyKYj+wKvt48Hxirp00=";
       };
       ports = [ "9980:9980" ];
       environment = {
@@ -72,15 +72,15 @@
   services.nextcloud = {
     enable = true;
     hostName = "nextcloud.selfmade4u.de";
-    package = pkgs.nextcloud27;
+    package = pkgs.nextcloud28;
     extraApps = (with config.services.nextcloud.package.packages.apps; {
       # https://github.com/NixOS/nixpkgs/blob/master/pkgs/servers/nextcloud/packages/27.json
-      inherit calendar contacts deck files_texteditor forms groupfolders impersonate mail maps news notes polls spreed tasks;
+      inherit calendar contacts deck forms groupfolders impersonate mail maps notes polls spreed tasks;
     }) // {
       richdocuments = pkgs.fetchNextcloudApp rec {
         license = "agpl3Plus";
-        sha256 = "sha256-0kXZEgLBtCa5/EYe/Keni2SWizHjvokFTAv0t7RoOlY=";
-        url = "https://github.com/nextcloud-releases/richdocuments/releases/download/v8.2.2/richdocuments-v8.2.2.tar.gz";
+        sha256 = "sha256-hkn4TTASIjhvUuGaBfxlS8qdeywXIxcZzryFg1pgV7Q=";
+        url = "https://github.com/nextcloud-releases/richdocuments/releases/download/v8.3.1/richdocuments-v8.3.1.tar.gz";
       };
     };
     extraAppsEnable = true;
